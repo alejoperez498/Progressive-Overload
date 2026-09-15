@@ -19,9 +19,6 @@
     --accent:#E8B023;
     --accent-ink:#1C1710;
     --danger:#E5534B;
-    --legs:#5FA777;
-    --chest:#5B8DEF;
-    --back:#B0503F;
     --radius-lg:20px;
     --radius-md:14px;
     --radius-sm:10px;
@@ -52,6 +49,7 @@
   .brand{display:flex; align-items:center; gap:8px;}
   .brand svg{width:20px; height:20px; flex-shrink:0;}
   .brand-name{font-size:19px; font-weight:700; letter-spacing:-0.01em;}
+  .icon-group{display:flex; gap:8px;}
   .icon-btn{
     width:36px; height:36px; border-radius:50%;
     display:flex; align-items:center; justify-content:center;
@@ -73,10 +71,6 @@
     background:var(--surface);
   }
   .nav-arrow:active{transform:scale(0.92);}
-  .today-chip{
-    font-size:13px; font-weight:600; color:var(--accent);
-    padding:6px 10px; border-radius:999px; background:rgba(232,176,35,0.12);
-  }
   .weekday-row{
     display:grid; grid-template-columns:repeat(7,1fr);
     padding:14px 12px 2px; gap:2px;
@@ -112,11 +106,8 @@
     padding:18px 20px 6px;
   }
   .legend-item{display:flex; align-items:center; gap:7px; font-size:13px; color:var(--text-2);}
-  .legend-dot{width:8px; height:8px; border-radius:50%;}
+  .legend-dot{width:8px; height:8px; border-radius:50%; flex-shrink:0;}
 
-  .section-divider{
-    height:1px; background:var(--border); margin:20px 20px 0;
-  }
   .link-row{
     margin:16px 20px 0;
     display:flex; align-items:center; justify-content:space-between;
@@ -157,6 +148,7 @@
     margin:6px 16px 0; padding:14px 14px;
     background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-md);
     display:flex; align-items:center; justify-content:space-between; gap:10px;
+    width:calc(100% - 32px);
   }
   .ex-row:active{transform:scale(0.99);}
   .ex-row .name{font-size:15.5px; font-weight:500;}
@@ -200,10 +192,6 @@
   }
   .primary-btn:active{transform:scale(0.98);}
   .primary-btn.disabled{opacity:0.35; pointer-events:none;}
-  .ghost-btn{
-    width:100%; padding:14px; text-align:center; margin-top:8px;
-    background:none; color:var(--text-2); font-size:15px; font-weight:600;
-  }
 
   /* ---------- Exercise card (log sets) ---------- */
   .exercise-card{
@@ -258,17 +246,49 @@
     display:flex; align-items:center; gap:14px;
     padding:16px; margin-bottom:10px;
     background:var(--surface-2); border-radius:var(--radius-md); border:1px solid var(--border);
+    width:100%; text-align:left;
   }
   .routine-option:active{transform:scale(0.98);}
   .routine-swatch{width:12px; height:44px; border-radius:6px; flex-shrink:0;}
   .routine-option .r-name{font-size:15.5px; font-weight:700;}
   .routine-option .r-sub{font-size:12.5px; color:var(--text-2); margin-top:2px;}
+  .add-routine-option{background:transparent; border-style:dashed;}
+  .add-swatch{
+    width:44px; height:44px; border-radius:50%;
+    border:1.5px dashed var(--text-3); display:flex; align-items:center; justify-content:center;
+    color:var(--text-3); flex-shrink:0;
+  }
+  .add-swatch svg{width:18px; height:18px;}
 
   .cancel-btn{
     width:100%; padding:14px; text-align:center; margin-top:4px;
     background:var(--surface-2); border-radius:var(--radius-md);
     font-size:15.5px; font-weight:600; color:var(--text-2);
   }
+
+  .routine-name-input{
+    width:100%; background:var(--surface-2); border:1px solid var(--border);
+    border-radius:var(--radius-md); padding:13px 14px; font-size:15.5px; color:var(--text);
+    margin-bottom:16px;
+  }
+  .routine-name-input::placeholder{color:var(--text-3);}
+  .color-grid{
+    display:grid; grid-template-columns:repeat(5,1fr); gap:12px; margin-bottom:18px;
+  }
+  .color-swatch{
+    aspect-ratio:1/1; border-radius:50%; border:2px solid transparent;
+    display:flex; align-items:center; justify-content:center; color:#fff;
+  }
+  .color-swatch.selected{border-color:var(--text);}
+  .color-swatch svg{width:15px; height:15px;}
+  .custom-routine-row{
+    display:flex; align-items:center; gap:10px; padding:10px 2px;
+    border-bottom:1px solid var(--border);
+  }
+  .custom-routine-row:last-child{border-bottom:none;}
+  .routine-swatch-sm{width:10px; height:10px; border-radius:50%; flex-shrink:0;}
+  .cr-name{flex:1; font-size:14.5px; font-weight:500;}
+  .cr-delete{width:30px; height:30px; display:flex; align-items:center; justify-content:center; color:var(--danger); flex-shrink:0;}
 
   .summary-ex{
     padding:14px 0; border-bottom:1px solid var(--border);
@@ -284,7 +304,7 @@
 
   .confirm-text{font-size:14.5px; color:var(--text-2); text-align:center; padding:0 8px 16px;}
 
-  /* ---------- Progress page ---------- */
+  /* ---------- Progress / Body weight pages ---------- */
   .ex-select-wrap{
     margin:14px 16px 0; padding:4px 14px;
     background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-md);
@@ -312,6 +332,20 @@
   .history-row .h-date{color:var(--text-2);}
   .history-row .h-sets{color:var(--text); text-align:right; font-weight:600;}
 
+  .bw-log-row{display:flex; gap:8px; align-items:center;}
+  .bw-log-row input[type="date"]{
+    flex:1.3; background:var(--surface-2); border:1px solid var(--border);
+    border-radius:10px; padding:11px 8px; font-size:13.5px; color:var(--text);
+  }
+  .bw-log-row input[type="number"]{
+    flex:1; min-width:0; background:var(--surface-2); border:1px solid var(--border);
+    border-radius:10px; padding:11px 10px; font-size:16px; text-align:center;
+  }
+  .bw-log-row button{
+    font-size:14px; font-weight:700; color:var(--accent-ink); background:var(--accent);
+    padding:11px 16px; border-radius:10px; flex-shrink:0;
+  }
+
   .empty-state{
     padding:60px 30px; text-align:center;
   }
@@ -326,16 +360,19 @@
 
 <script>
 /* ============================= CONFIG ============================= */
-const ROUTINES = {
-  legs:  { label: 'Legs & Abs',              short:'Legs & Abs',        color:'var(--legs)'  },
-  chest: { label: 'Upper Body — Chest & Delts', short:'Chest & Delts',  color:'var(--chest)' },
-  back:  { label: 'Back & Arms',             short:'Back & Arms',       color:'var(--back)'  }
-};
+const DEFAULT_ROUTINES = [
+  { key:'legs',  label:'Legs & Abs',    color:'#5FA777', builtin:true },
+  { key:'upper', label:'Upper Body',    color:'#8E6FD1', builtin:true },
+  { key:'chest', label:'Chest & Delts', color:'#5B8DEF', builtin:true },
+  { key:'back',  label:'Back & Arms',   color:'#B0503F', builtin:true }
+];
 const DEFAULT_EXERCISES = {
-  legs: ['Barbell Back Squat','Romanian Deadlift','Leg Press','Walking Lunges','Leg Extension','Leg Curl','Standing Calf Raise','Hanging Leg Raise','Cable Crunch'],
-  chest:['Barbell Bench Press','Incline Dumbbell Press','Overhead Shoulder Press','Lateral Raise','Cable Chest Fly','Front Raise','Weighted Dips','Push-Ups'],
-  back: ['Deadlift','Pull-Ups','Barbell Row','Lat Pulldown','Face Pull','Barbell Bicep Curl','Hammer Curl','Tricep Pushdown','Skull Crushers']
+  legs:  ['Barbell Back Squat','Romanian Deadlift','Leg Press','Walking Lunges','Leg Extension','Leg Curl','Standing Calf Raise','Hanging Leg Raise','Cable Crunch'],
+  upper: ['Barbell Bench Press','Overhead Shoulder Press','Weighted Dips','Push-Ups'],
+  chest: ['Incline Dumbbell Press','Cable Chest Fly','Lateral Raise','Front Raise','Rear Delt Fly'],
+  back:  ['Deadlift','Pull-Ups','Barbell Row','Lat Pulldown','Face Pull','Barbell Bicep Curl','Hammer Curl','Tricep Pushdown','Skull Crushers']
 };
+const PRESET_COLORS = ['#5FA777','#5B8DEF','#8E6FD1','#B0503F','#E8B023','#4FB6B0','#D66FA6','#8C9A4B','#C9564F','#6E8FAE'];
 
 /* ============================= UTIL ============================= */
 function pad2(n){ return String(n).padStart(2,'0'); }
@@ -365,7 +402,8 @@ function svgIcon(name){
     check: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>',
     trash: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2m3 0l-1 14a2 2 0 01-2 2H7a2 2 0 01-2-2L4 6"/></svg>',
     chart: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18M7 15l4-5 3 3 5-7"/></svg>',
-    plus: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>'
+    plus: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>',
+    scale: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="4"/><path d="M12 8a4.2 4.2 0 100 8M12 8v4l2.2 2.2"/></svg>'
   };
   return icons[name] || '';
 }
@@ -400,44 +438,72 @@ if (typeof window.storage === 'undefined') {
 
 let workoutLog = {};
 let exerciseLibrary = {};
+let routines = [];
+let bodyWeightLog = {};
 let dataReady = false;
 
 function makeExFromName(name){ return { id: slugify(name)+'-'+Math.random().toString(36).slice(2,7), name, lastUsed:null }; }
+function getRoutine(key){
+  return routines.find(r=>r.key===key) || { key, label:'Deleted routine', color:'#6B6E73', builtin:false };
+}
 
 async function loadData(){
   try{
-    const res = await window.storage.get('workout-log', false);
+    const res = await window.storage.get('workout-log');
     workoutLog = res && res.value ? JSON.parse(res.value) : {};
   }catch(e){ workoutLog = {}; }
 
   try{
-    const res = await window.storage.get('exercise-library', false);
+    const res = await window.storage.get('routines');
+    routines = res && res.value ? JSON.parse(res.value) : null;
+  }catch(e){ routines = null; }
+  let routinesChanged = false;
+  if(!routines || !routines.length){ routines = DEFAULT_ROUTINES.map(r=>({...r})); routinesChanged = true; }
+
+  try{
+    const res = await window.storage.get('exercise-library');
     exerciseLibrary = res && res.value ? JSON.parse(res.value) : null;
   }catch(e){ exerciseLibrary = null; }
+  if(!exerciseLibrary) exerciseLibrary = {};
+  let libraryChanged = false;
+  routines.forEach(r=>{
+    if(!exerciseLibrary[r.key]){
+      exerciseLibrary[r.key] = (DEFAULT_EXERCISES[r.key]||[]).map(makeExFromName);
+      libraryChanged = true;
+    }
+  });
 
-  if(!exerciseLibrary){
-    exerciseLibrary = {};
-    Object.keys(DEFAULT_EXERCISES).forEach(key=>{
-      exerciseLibrary[key] = DEFAULT_EXERCISES[key].map(makeExFromName);
-    });
-    await saveLibrary();
-  }
+  try{
+    const res = await window.storage.get('body-weight-log');
+    bodyWeightLog = res && res.value ? JSON.parse(res.value) : {};
+  }catch(e){ bodyWeightLog = {}; }
+
+  if(routinesChanged) await saveRoutines();
+  if(libraryChanged) await saveLibrary();
   dataReady = true;
 }
 async function saveWorkoutLog(){
-  try{ await window.storage.set('workout-log', JSON.stringify(workoutLog), false); }
+  try{ await window.storage.set('workout-log', JSON.stringify(workoutLog)); }
   catch(e){ console.error('save workout-log failed', e); }
 }
 async function saveLibrary(){
-  try{ await window.storage.set('exercise-library', JSON.stringify(exerciseLibrary), false); }
+  try{ await window.storage.set('exercise-library', JSON.stringify(exerciseLibrary)); }
   catch(e){ console.error('save exercise-library failed', e); }
+}
+async function saveRoutines(){
+  try{ await window.storage.set('routines', JSON.stringify(routines)); }
+  catch(e){ console.error('save routines failed', e); }
+}
+async function saveBodyWeightLog(){
+  try{ await window.storage.set('body-weight-log', JSON.stringify(bodyWeightLog)); }
+  catch(e){ console.error('save body-weight-log failed', e); }
 }
 
 /* ============================= STATE ============================= */
 const today = new Date();
 const state = {
   page: 'calendar',
-  modal: null,               // {type:'routinePicker'|'daySummary'|'confirmDelete', date}
+  modal: null,               // {type:'routinePicker'|'daySummary'|'confirmDelete'|'newRoutine', date}
   year: today.getFullYear(),
   month: today.getMonth(),
   selectedDate: null,
@@ -445,7 +511,8 @@ const state = {
   selectedExercises: [],     // array of exercise names
   setsData: {},              // name -> [{weight,reps}, ...]
   editing: false,
-  progressExercise: null
+  progressExercise: null,
+  newRoutineColor: null
 };
 
 /* ============================= RENDER DISPATCH ============================= */
@@ -455,10 +522,12 @@ function render(){
   else if(state.page === 'exercisePicker') pageEl.innerHTML = renderExercisePickerPage();
   else if(state.page === 'logSets') pageEl.innerHTML = renderLogSetsPage();
   else if(state.page === 'progress') pageEl.innerHTML = renderProgressPage();
+  else if(state.page === 'bodyweight') pageEl.innerHTML = renderBodyWeightPage();
 
   const modalEl = document.getElementById('modal');
   if(!state.modal) modalEl.innerHTML = '';
   else if(state.modal.type === 'routinePicker') modalEl.innerHTML = renderRoutinePickerModal(state.modal.date);
+  else if(state.modal.type === 'newRoutine') modalEl.innerHTML = renderNewRoutineModal(state.modal.date);
   else if(state.modal.type === 'daySummary') modalEl.innerHTML = renderDaySummaryModal(state.modal.date);
   else if(state.modal.type === 'confirmDelete') modalEl.innerHTML = renderConfirmDeleteModal(state.modal.date);
 }
@@ -480,7 +549,7 @@ function renderCalendarPage(){
     if(c.out) return `<div class="day-cell out"><span class="num">${c.num}</span></div>`;
     const entry = workoutLog[c.dateStr];
     const isToday = c.dateStr === tKey;
-    const dots = entry ? `<div class="dot-row"><span class="dot" style="background:${ROUTINES[entry.routine].color}"></span></div>` : `<div class="dot-row"></div>`;
+    const dots = entry ? `<div class="dot-row"><span class="dot" style="background:${getRoutine(entry.routine).color}"></span></div>` : `<div class="dot-row"></div>`;
     return `<button class="day-cell${isToday?' is-today':''}" data-action="open-day" data-date="${c.dateStr}">
       <span class="num">${c.num}</span>
       ${dots}
@@ -490,7 +559,10 @@ function renderCalendarPage(){
   return `
     <div class="topbar">
       <div class="brand">${svgIcon('barbell')}<span class="brand-name">Overload</span></div>
-      <button class="icon-btn" data-action="open-progress">${svgIcon('chart')}</button>
+      <div class="icon-group">
+        <button class="icon-btn" data-action="open-body-weight">${svgIcon('scale')}</button>
+        <button class="icon-btn" data-action="open-progress">${svgIcon('chart')}</button>
+      </div>
     </div>
     <div class="month-nav">
       <span class="month-label">${MONTH_NAMES[m]} ${y}</span>
@@ -502,9 +574,16 @@ function renderCalendarPage(){
     <div class="weekday-row">${WEEKDAY_LETTERS.map(w=>`<span>${w}</span>`).join('')}</div>
     <div class="day-grid">${cellsHtml}</div>
     <div class="legend">
-      ${Object.entries(ROUTINES).map(([k,r])=>`<div class="legend-item"><span class="legend-dot" style="background:${r.color}"></span>${r.short}</div>`).join('')}
+      ${routines.map(r=>`<div class="legend-item"><span class="legend-dot" style="background:${r.color}"></span>${escapeHtml(r.label)}</div>`).join('')}
     </div>
-    <div class="link-row" data-action="open-progress">
+    <div class="link-row" data-action="open-body-weight">
+      <div>
+        <div class="label">Body weight</div>
+        <div class="sub">Log and track your weight over time</div>
+      </div>
+      ${svgIcon('chevronRight')}
+    </div>
+    <div class="link-row" data-action="open-progress" style="margin-top:10px;">
       <div>
         <div class="label">Exercise progress</div>
         <div class="sub">See your weight trend per exercise</div>
@@ -516,12 +595,12 @@ function renderCalendarPage(){
 
 /* ============================= ROUTINE PICKER (modal) ============================= */
 function renderRoutinePickerModal(dateStr){
-  const options = Object.entries(ROUTINES).map(([key,r])=>`
-    <button class="routine-option" data-action="choose-routine" data-date="${dateStr}" data-routine="${key}">
+  const options = routines.map(r=>`
+    <button class="routine-option" data-action="choose-routine" data-date="${dateStr}" data-routine="${r.key}">
       <div class="routine-swatch" style="background:${r.color}"></div>
       <div>
-        <div class="r-name">${r.label}</div>
-        <div class="r-sub">${exerciseLibrary[key].length} exercises in your library</div>
+        <div class="r-name">${escapeHtml(r.label)}</div>
+        <div class="r-sub">${(exerciseLibrary[r.key]||[]).length} exercises in your library</div>
       </div>
     </button>
   `).join('');
@@ -532,7 +611,46 @@ function renderRoutinePickerModal(dateStr){
         <div class="sheet-title">Choose a routine</div>
         <div class="sheet-date">${humanDate(dateStr)}</div>
         ${options}
+        <button class="routine-option add-routine-option" data-action="open-new-routine" data-date="${dateStr}">
+          <div class="add-swatch">${svgIcon('plus')}</div>
+          <div>
+            <div class="r-name">New routine</div>
+            <div class="r-sub">Create a custom routine with its own color</div>
+          </div>
+        </button>
         <button class="cancel-btn" data-action="close-modal">Cancel</button>
+      </div>
+    </div>
+  `;
+}
+
+/* ============================= NEW ROUTINE (modal) ============================= */
+function renderNewRoutineModal(dateStr){
+  const chosen = state.newRoutineColor || PRESET_COLORS[0];
+  const customRoutines = routines.filter(r=>!r.builtin);
+  return `
+    <div class="overlay" data-action="dismiss-overlay">
+      <div class="sheet">
+        <div class="sheet-handle"></div>
+        <div class="sheet-title">New routine</div>
+        <div style="margin-top:16px;">
+          <input id="new-routine-name" class="routine-name-input" type="text" placeholder="Routine name" maxlength="40">
+          <div class="color-grid">
+            ${PRESET_COLORS.map(c=>`<button class="color-swatch${c===chosen?' selected':''}" data-action="pick-routine-color" data-color="${c}" style="background:${c}">${c===chosen?svgIcon('check'):''}</button>`).join('')}
+          </div>
+          <button class="primary-btn" data-action="create-routine" data-date="${dateStr}">Create routine</button>
+          <button class="cancel-btn" data-action="back-to-routine-picker" data-date="${dateStr}">Cancel</button>
+        </div>
+        ${customRoutines.length ? `
+          <div class="list-heading" style="padding-left:2px; padding-right:2px;">Your custom routines</div>
+          ${customRoutines.map(r=>`
+            <div class="custom-routine-row">
+              <span class="routine-swatch-sm" style="background:${r.color}"></span>
+              <span class="cr-name">${escapeHtml(r.label)}</span>
+              <button class="cr-delete" data-action="delete-routine" data-key="${r.key}">${svgIcon('trash')}</button>
+            </div>
+          `).join('')}
+        ` : ''}
       </div>
     </div>
   `;
@@ -541,8 +659,8 @@ function renderRoutinePickerModal(dateStr){
 /* ============================= EXERCISE PICKER PAGE ============================= */
 function renderExercisePickerPage(){
   const routineKey = state.selectedRoutine;
-  const routine = ROUTINES[routineKey];
-  const list = [...exerciseLibrary[routineKey]].sort((a,b)=>{
+  const routine = getRoutine(routineKey);
+  const list = [...(exerciseLibrary[routineKey]||[])].sort((a,b)=>{
     if(a.lastUsed && b.lastUsed) return b.lastUsed.localeCompare(a.lastUsed);
     if(a.lastUsed) return -1;
     if(b.lastUsed) return 1;
@@ -565,7 +683,7 @@ function renderExercisePickerPage(){
     <div class="page-header">
       <button class="back-btn" data-action="back-from-picker">${svgIcon('chevronLeft')}</button>
       <div>
-        <div class="page-title">${routine.short}</div>
+        <div class="page-title">${escapeHtml(routine.label)}</div>
         <div class="page-sub">${humanDate(state.selectedDate)}</div>
       </div>
     </div>
@@ -597,7 +715,7 @@ function getLastPerformance(exName, excludeDate){
   return null;
 }
 function renderLogSetsPage(){
-  const routine = ROUTINES[state.selectedRoutine];
+  const routine = getRoutine(state.selectedRoutine);
   const cards = state.selectedExercises.map(name=>{
     const rows = state.setsData[name] || [{weight:'',reps:''}];
     const last = getLastPerformance(name, state.editing ? state.selectedDate : null);
@@ -626,7 +744,7 @@ function renderLogSetsPage(){
       <button class="back-btn" data-action="back-from-logsets">${svgIcon('chevronLeft')}</button>
       <div>
         <div class="page-title">Log your sets</div>
-        <div class="page-sub">${routine.short} · ${humanDate(state.selectedDate)}</div>
+        <div class="page-sub">${escapeHtml(routine.label)} · ${humanDate(state.selectedDate)}</div>
       </div>
     </div>
     ${cards}
@@ -639,7 +757,7 @@ function renderLogSetsPage(){
 /* ============================= DAY SUMMARY (modal) ============================= */
 function renderDaySummaryModal(dateStr){
   const entry = workoutLog[dateStr];
-  const routine = ROUTINES[entry.routine];
+  const routine = getRoutine(entry.routine);
   const rows = entry.exercises.map(ex=>`
     <div class="summary-ex">
       <div class="ex-name">${escapeHtml(ex.name)}</div>
@@ -651,7 +769,7 @@ function renderDaySummaryModal(dateStr){
       <div class="sheet">
         <div class="sheet-handle"></div>
         <span class="routine-tag" style="background:color-mix(in srgb, ${routine.color} 18%, transparent); color:${routine.color}">
-          <span class="dot" style="background:${routine.color}"></span>${routine.short}
+          <span class="dot" style="background:${routine.color}"></span>${escapeHtml(routine.label)}
         </span>
         <div class="sheet-date" style="text-align:left; margin-top:8px;">${humanDate(dateStr)}</div>
         <div style="margin-top:6px;">${rows}</div>
@@ -680,6 +798,28 @@ function renderConfirmDeleteModal(dateStr){
   `;
 }
 
+/* ============================= SHARED TREND CHART ============================= */
+function renderTrendSVG(values, emptyNoun){
+  if(values.length < 2){
+    return `<div class="chart-empty">Log ${emptyNoun} on ${values.length===0?'two or more days':'one more day'} to see a trend line.</div>`;
+  }
+  const w = 300, h = 140, padX = 12, padY = 16;
+  const min = Math.min(...values), max = Math.max(...values);
+  const range = (max-min) || 1;
+  const stepX = (w - padX*2) / (values.length-1);
+  const points = values.map((v,i)=>{
+    const x = padX + i*stepX;
+    const y = padY + (1 - (v-min)/range) * (h - padY*2);
+    return [x,y];
+  });
+  const path = points.map((p,i)=> (i===0?'M':'L') + p[0].toFixed(1) + ',' + p[1].toFixed(1)).join(' ');
+  const dots = points.map(p=>`<circle cx="${p[0].toFixed(1)}" cy="${p[1].toFixed(1)}" r="3.5" fill="var(--accent)"/>`).join('');
+  return `<svg viewBox="0 0 ${w} ${h}" style="width:100%; height:140px; display:block;">
+    <path d="${path}" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
+    ${dots}
+  </svg>`;
+}
+
 /* ============================= PROGRESS PAGE ============================= */
 function allLoggedExerciseNames(){
   const set = new Set();
@@ -692,30 +832,8 @@ function sessionsForExercise(name){
     const found = entry.exercises.find(e=>e.name===name);
     if(!found) return null;
     const weights = found.sets.map(s=>Number(s.weight)||0);
-    const topSet = found.sets.reduce((best,s)=> (Number(s.weight)||0) >= (Number(best.weight)||0) ? s : best, found.sets[0]);
-    return { date:d, sets:found.sets, topWeight: Math.max(...weights,0), topSet };
+    return { date:d, sets:found.sets, topWeight: Math.max(...weights,0) };
   }).filter(Boolean);
-}
-function renderMiniChart(sessions){
-  if(sessions.length < 2){
-    return `<div class="chart-empty">Log this exercise on ${sessions.length===0?'two or more days':'one more day'} to see a trend line.</div>`;
-  }
-  const w = 300, h = 140, padX = 12, padY = 16;
-  const weights = sessions.map(s=>s.topWeight);
-  const min = Math.min(...weights), max = Math.max(...weights);
-  const range = (max-min) || 1;
-  const stepX = (w - padX*2) / (sessions.length-1);
-  const points = sessions.map((s,i)=>{
-    const x = padX + i*stepX;
-    const y = padY + (1 - (s.topWeight-min)/range) * (h - padY*2);
-    return [x,y];
-  });
-  const path = points.map((p,i)=> (i===0?'M':'L') + p[0].toFixed(1) + ',' + p[1].toFixed(1)).join(' ');
-  const dots = points.map(p=>`<circle cx="${p[0].toFixed(1)}" cy="${p[1].toFixed(1)}" r="3.5" fill="var(--accent)"/>`).join('');
-  return `<svg viewBox="0 0 ${w} ${h}" style="width:100%; height:140px; display:block;">
-    <path d="${path}" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
-    ${dots}
-  </svg>`;
 }
 function renderProgressPage(){
   const names = allLoggedExerciseNames();
@@ -755,10 +873,49 @@ function renderProgressPage(){
         <div><span class="val">${best||'—'}</span><span class="lbl">Best set (weight)</span></div>
         <div><span class="val">${sessions.length}</span><span class="lbl">Sessions logged</span></div>
       </div>
-      ${renderMiniChart(sessions)}
+      ${renderTrendSVG(sessions.map(s=>s.topWeight), 'this exercise')}
     </div>
     <div class="list-heading">History</div>
     <div class="chart-card" style="margin-top:6px;">${historyRows}</div>
+  `;
+}
+
+/* ============================= BODY WEIGHT PAGE ============================= */
+function renderBodyWeightPage(){
+  const dates = Object.keys(bodyWeightLog).sort();
+  const entries = dates.map(d=>({date:d, value:bodyWeightLog[d]}));
+  const latest = entries.length ? entries[entries.length-1].value : null;
+  const first = entries.length ? entries[0].value : null;
+  const change = (latest!==null && first!==null && entries.length>1) ? (latest-first) : null;
+  const inputDate = state.bwInputDate || todayKey();
+  const existingVal = bodyWeightLog[inputDate];
+  const historyRows = [...entries].reverse().map(e=>`
+    <div class="history-row">
+      <span class="h-date">${shortDate(e.date)}</span>
+      <span class="h-sets">${e.value}</span>
+    </div>
+  `).join('');
+  return `
+    <div class="page-header">
+      <button class="back-btn" data-action="back-to-calendar">${svgIcon('chevronLeft')}</button>
+      <div class="page-title">Body weight</div>
+    </div>
+    <div class="chart-card" style="margin-top:16px;">
+      <div class="bw-log-row">
+        <input id="bw-date-input" type="date" value="${inputDate}" max="${todayKey()}">
+        <input id="bw-value-input" type="number" inputmode="decimal" placeholder="Weight" value="${existingVal??''}">
+        <button data-action="save-body-weight">Save</button>
+      </div>
+    </div>
+    <div class="chart-card">
+      <div class="best-stat">
+        <div><span class="val">${latest??'—'}</span><span class="lbl">Latest</span></div>
+        <div><span class="val">${change===null?'—':(change>0?'+':'')+Number(change.toFixed(1))}</span><span class="lbl">Change</span></div>
+        <div><span class="val">${entries.length}</span><span class="lbl">Entries</span></div>
+      </div>
+      ${renderTrendSVG(entries.map(e=>e.value), 'your weight')}
+    </div>
+    ${entries.length ? `<div class="list-heading">History</div><div class="chart-card" style="margin-top:6px;">${historyRows}</div>` : ''}
   `;
 }
 
@@ -775,6 +932,40 @@ function chooseRoutine(dateStr, routineKey){
   state.editing = false;
   state.modal = null;
   state.page = 'exercisePicker';
+  render();
+}
+function openNewRoutine(dateStr){
+  state.newRoutineColor = PRESET_COLORS[0];
+  state.modal = {type:'newRoutine', date:dateStr};
+  render();
+}
+function backToRoutinePicker(dateStr){
+  state.newRoutineColor = null;
+  state.modal = {type:'routinePicker', date:dateStr};
+  render();
+}
+function pickRoutineColor(color){
+  state.newRoutineColor = color;
+  render();
+}
+async function createRoutine(dateStr){
+  const nameInput = document.getElementById('new-routine-name');
+  const name = (nameInput.value||'').trim();
+  if(!name) return;
+  const key = 'r-' + slugify(name) + '-' + Math.random().toString(36).slice(2,6);
+  const color = state.newRoutineColor || PRESET_COLORS[0];
+  routines.push({key, label:name, color, builtin:false});
+  exerciseLibrary[key] = [];
+  await saveRoutines();
+  await saveLibrary();
+  state.newRoutineColor = null;
+  chooseRoutine(dateStr, key);
+}
+async function deleteRoutine(key){
+  routines = routines.filter(r=>r.key!==key);
+  delete exerciseLibrary[key];
+  await saveRoutines();
+  await saveLibrary();
   render();
 }
 function toggleExercise(name){
@@ -835,7 +1026,6 @@ async function saveWorkout(){
   })).filter(e=>e.sets.length>0);
 
   if(!exercises.length){
-    // nothing valid entered; just go back to calendar without saving
     state.page = 'calendar';
     render();
     return;
@@ -846,7 +1036,7 @@ async function saveWorkout(){
 
   const routineKey = state.selectedRoutine;
   exercises.forEach(ex=>{
-    const libEx = exerciseLibrary[routineKey].find(e=>e.name===ex.name);
+    const libEx = (exerciseLibrary[routineKey]||[]).find(e=>e.name===ex.name);
     if(libEx && (!libEx.lastUsed || state.selectedDate > libEx.lastUsed)) libEx.lastUsed = state.selectedDate;
   });
   await saveLibrary();
@@ -887,6 +1077,21 @@ function openProgress(){
   state.page = 'progress';
   render();
 }
+function openBodyWeight(){
+  state.page = 'bodyweight';
+  render();
+}
+async function saveBodyWeight(){
+  const dateInput = document.getElementById('bw-date-input');
+  const valInput = document.getElementById('bw-value-input');
+  const d = dateInput.value;
+  const v = Number(valInput.value);
+  if(!d || valInput.value==='' || isNaN(v) || v<=0) return;
+  bodyWeightLog[d] = v;
+  await saveBodyWeightLog();
+  state.bwInputDate = d;
+  render();
+}
 function backToCalendar(){
   state.page = 'calendar';
   render();
@@ -905,6 +1110,11 @@ function handleClick(e){
   const action = el.dataset.action;
   if(action==='open-day') openDay(el.dataset.date);
   else if(action==='choose-routine') chooseRoutine(el.dataset.date, el.dataset.routine);
+  else if(action==='open-new-routine') openNewRoutine(el.dataset.date);
+  else if(action==='back-to-routine-picker') backToRoutinePicker(el.dataset.date);
+  else if(action==='pick-routine-color') pickRoutineColor(el.dataset.color);
+  else if(action==='create-routine') createRoutine(el.dataset.date);
+  else if(action==='delete-routine') deleteRoutine(el.dataset.key);
   else if(action==='close-modal'){ state.modal=null; render(); }
   else if(action==='dismiss-overlay'){ state.modal=null; render(); }
   else if(action==='toggle-exercise') toggleExercise(el.dataset.name);
@@ -919,6 +1129,8 @@ function handleClick(e){
   else if(action==='ask-delete'){ state.modal = {type:'confirmDelete', date:el.dataset.date}; render(); }
   else if(action==='confirm-delete') deleteDay(el.dataset.date);
   else if(action==='open-progress') openProgress();
+  else if(action==='open-body-weight') openBodyWeight();
+  else if(action==='save-body-weight') saveBodyWeight();
   else if(action==='back-to-calendar') backToCalendar();
   else if(action==='nav-month') navMonth(Number(el.dataset.dir));
 }
@@ -932,6 +1144,7 @@ document.addEventListener('change', (e)=>{
 });
 document.addEventListener('keydown', (e)=>{
   if(e.key==='Enter' && e.target.id==='custom-exercise-input'){ e.preventDefault(); addCustomExercise(); }
+  if(e.key==='Enter' && e.target.id==='new-routine-name'){ e.preventDefault(); }
 });
 
 /* ============================= BOOT ============================= */
