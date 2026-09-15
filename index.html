@@ -26,6 +26,10 @@
     --safe-t: env(safe-area-inset-top, 0px);
   }
   *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+  /* Default size for every icon svg — Safari collapses un-sized inline SVGs
+     inside flex containers to 0x0, so every icon needs an explicit size.
+     More specific rules below (.brand svg, .checkbox svg, etc.) override this. */
+  svg{width:18px; height:18px; flex-shrink:0; display:block;}
   html,body{height:100%;}
   body{
     margin:0;
