@@ -355,6 +355,27 @@
   }
   .empty-state p{color:var(--text-2); font-size:14.5px; margin-top:6px;}
 
+  /* ---------- Backup ---------- */
+  .backup-banner{
+    margin:14px 20px 0; padding:14px 16px;
+    background:rgba(232,176,35,0.10); border:1px solid rgba(232,176,35,0.3);
+    border-radius:var(--radius-md);
+    display:flex; align-items:center; justify-content:space-between; gap:10px;
+  }
+  .bb-title{font-size:14px; font-weight:700; color:var(--accent);}
+  .bb-sub{font-size:12px; color:var(--text-2); margin-top:2px;}
+  .bb-actions{display:flex; gap:8px; flex-shrink:0;}
+  .bb-actions button{font-size:13px; font-weight:700; padding:8px 12px; border-radius:8px;}
+  .bb-save{background:var(--accent); color:var(--accent-ink);}
+  .bb-dismiss{background:var(--surface-2); color:var(--text-2);}
+  .secondary-btn{
+    width:100%; padding:15px; text-align:center;
+    background:var(--surface-2); color:var(--text); border:1px solid var(--border);
+    font-size:16px; font-weight:700; border-radius:var(--radius-md);
+  }
+  .secondary-btn:active{transform:scale(0.98);}
+  .backup-note{font-size:13px; color:var(--text-2); line-height:1.5; margin-bottom:14px;}
+
   ::-webkit-scrollbar{display:none;}
 </style>
 </head>
@@ -407,7 +428,8 @@ function svgIcon(name){
     trash: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2m3 0l-1 14a2 2 0 01-2 2H7a2 2 0 01-2-2L4 6"/></svg>',
     chart: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18M7 15l4-5 3 3 5-7"/></svg>',
     plus: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>',
-    scale: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="4"/><path d="M12 8a4.2 4.2 0 100 8M12 8v4l2.2 2.2"/></svg>'
+    scale: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="4"/><path d="M12 8a4.2 4.2 0 100 8M12 8v4l2.2 2.2"/></svg>',
+    backup: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12m0 0l-4-4m4 4l4-4"/><path d="M4 17v3a1 1 0 001 1h14a1 1 0 001-1v-3"/></svg>'
   };
   return icons[name] || '';
 }
@@ -444,6 +466,7 @@ let workoutLog = {};
 let exerciseLibrary = {};
 let routines = [];
 let bodyWeightLog = {};
+let backupMeta = {};
 let dataReady = false;
 
 function makeExFromName(name){ return { id: slugify(name)+'-'+Math.random().toString(36).slice(2,7), name, lastUsed:null }; }
@@ -482,6 +505,11 @@ async function loadData(){
     bodyWeightLog = res && res.value ? JSON.parse(res.value) : {};
   }catch(e){ bodyWeightLog = {}; }
 
+  try{
+    const res = await window.storage.get('backup-meta');
+    backupMeta = res && res.value ? JSON.parse(res.value) : {};
+  }catch(e){ backupMeta = {}; }
+
   if(routinesChanged) await saveRoutines();
   if(libraryChanged) await saveLibrary();
   dataReady = true;
@@ -502,6 +530,17 @@ async function saveBodyWeightLog(){
   try{ await window.storage.set('body-weight-log', JSON.stringify(bodyWeightLog)); }
   catch(e){ console.error('save body-weight-log failed', e); }
 }
+async function saveBackupMeta(){
+  try{ await window.storage.set('backup-meta', JSON.stringify(backupMeta)); }
+  catch(e){ console.error('save backup-meta failed', e); }
+}
+function daysSinceLastBackup(){
+  if(!backupMeta.lastBackupDate) return Infinity;
+  const [y,m,d] = backupMeta.lastBackupDate.split('-').map(Number);
+  const last = new Date(y, m-1, d);
+  const now = new Date();
+  return Math.floor((now - last) / (1000*60*60*24));
+}
 
 /* ============================= STATE ============================= */
 const today = new Date();
@@ -516,7 +555,8 @@ const state = {
   setsData: {},              // name -> [{weight,reps}, ...]
   editing: false,
   progressExercise: null,
-  newRoutineColor: null
+  newRoutineColor: null,
+  backupBannerDismissed: false
 };
 
 /* ============================= RENDER DISPATCH ============================= */
@@ -527,6 +567,7 @@ function render(){
   else if(state.page === 'logSets') pageEl.innerHTML = renderLogSetsPage();
   else if(state.page === 'progress') pageEl.innerHTML = renderProgressPage();
   else if(state.page === 'bodyweight') pageEl.innerHTML = renderBodyWeightPage();
+  else if(state.page === 'backup') pageEl.innerHTML = renderBackupPage();
 
   const modalEl = document.getElementById('modal');
   if(!state.modal) modalEl.innerHTML = '';
@@ -560,14 +601,31 @@ function renderCalendarPage(){
     </button>`;
   }).join('');
 
+  const hasData = Object.keys(workoutLog).length>0 || Object.keys(bodyWeightLog).length>0;
+  const overdue = hasData && daysSinceLastBackup() >= 7;
+  const showBanner = overdue && !state.backupBannerDismissed;
+
   return `
     <div class="topbar">
       <div class="brand">${svgIcon('barbell')}<span class="brand-name">Overload</span></div>
       <div class="icon-group">
+        <button class="icon-btn" data-action="open-backup">${svgIcon('backup')}</button>
         <button class="icon-btn" data-action="open-body-weight">${svgIcon('scale')}</button>
         <button class="icon-btn" data-action="open-progress">${svgIcon('chart')}</button>
       </div>
     </div>
+    ${showBanner ? `
+      <div class="backup-banner">
+        <div>
+          <div class="bb-title">Weekly backup ready</div>
+          <div class="bb-sub">Save a copy of your data to Files</div>
+        </div>
+        <div class="bb-actions">
+          <button class="bb-save" data-action="save-backup-and-dismiss">Save</button>
+          <button class="bb-dismiss" data-action="dismiss-backup-banner">Later</button>
+        </div>
+      </div>
+    ` : ''}
     <div class="month-nav">
       <span class="month-label">${MONTH_NAMES[m]} ${y}</span>
       <div class="month-nav-btns">
@@ -923,6 +981,39 @@ function renderBodyWeightPage(){
   `;
 }
 
+/* ============================= BACKUP PAGE ============================= */
+function renderBackupPage(){
+  const last = backupMeta.lastBackupDate ? shortDate(backupMeta.lastBackupDate) : 'Never';
+  return `
+    <div class="page-header">
+      <button class="back-btn" data-action="back-to-calendar">${svgIcon('chevronLeft')}</button>
+      <div class="page-title">Backup & restore</div>
+    </div>
+    <div class="chart-card" style="margin-top:16px;">
+      <div class="best-stat" style="padding-bottom:0;">
+        <div><span class="val" style="font-size:16px;">${last}</span><span class="lbl">Last backup</span></div>
+      </div>
+    </div>
+    <div class="chart-card">
+      <div class="ex-title">Save a backup</div>
+      <div class="backup-note" style="margin-top:8px;">
+        Downloads everything — routines, exercises, workouts, body weight — as one file.
+        iOS will hand you its normal download/share screen; choose <strong>Save to Files</strong>
+        and pick your iCloud Drive folder to keep it there. There's no way for a web page to
+        skip that tap and save silently in the background — that's an iOS restriction, not
+        something specific to this app.
+      </div>
+      <button class="primary-btn" data-action="save-backup-now">Save backup</button>
+    </div>
+    <div class="chart-card">
+      <div class="ex-title">Restore from backup</div>
+      <div class="backup-note" style="margin-top:8px;">Replaces everything currently in the app with what's in the backup file.</div>
+      <input type="file" id="restore-file-input" accept="application/json,.json" style="display:none;">
+      <button class="secondary-btn" data-action="pick-restore-file">Choose backup file</button>
+    </div>
+  `;
+}
+
 /* ============================= ACTIONS ============================= */
 function openDay(dateStr){
   state.modal = workoutLog[dateStr] ? {type:'daySummary', date:dateStr} : {type:'routinePicker', date:dateStr};
@@ -1100,6 +1191,69 @@ function backToCalendar(){
   state.page = 'calendar';
   render();
 }
+function openBackupPage(){
+  state.page = 'backup';
+  render();
+}
+function buildBackupPayload(){
+  return { app:'overload-backup', version:1, exportedAt:new Date().toISOString(), routines, exerciseLibrary, workoutLog, bodyWeightLog };
+}
+function triggerBackupDownload(){
+  const payload = buildBackupPayload();
+  const blob = new Blob([JSON.stringify(payload, null, 2)], {type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `overload-backup-${todayKey()}.json`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  setTimeout(()=>URL.revokeObjectURL(url), 1000);
+}
+async function saveBackupNow(){
+  triggerBackupDownload();
+  backupMeta.lastBackupDate = todayKey();
+  await saveBackupMeta();
+  render();
+}
+async function saveBackupAndDismissBanner(){
+  await saveBackupNow();
+  state.backupBannerDismissed = true;
+  render();
+}
+function dismissBackupBanner(){
+  state.backupBannerDismissed = true;
+  render();
+}
+function pickRestoreFile(){
+  const input = document.getElementById('restore-file-input');
+  if(input) input.click();
+}
+async function handleRestoreFile(file){
+  let data;
+  try{
+    const text = await file.text();
+    data = JSON.parse(text);
+  }catch(e){
+    alert("Could not read that file — make sure it's an Overload backup .json file.");
+    return;
+  }
+  if(!data || typeof data !== 'object' || !data.workoutLog || !data.exerciseLibrary || !data.routines){
+    alert("This file doesn't look like a valid Overload backup.");
+    return;
+  }
+  workoutLog = data.workoutLog || {};
+  exerciseLibrary = data.exerciseLibrary || {};
+  routines = (data.routines && data.routines.length) ? data.routines : DEFAULT_ROUTINES.map(r=>({...r}));
+  bodyWeightLog = data.bodyWeightLog || {};
+  await saveWorkoutLog();
+  await saveLibrary();
+  await saveRoutines();
+  await saveBodyWeightLog();
+  alert('Backup restored.');
+  state.page = 'calendar';
+  render();
+}
 function navMonth(dir){
   state.month += dir;
   if(state.month<0){ state.month=11; state.year--; }
@@ -1135,6 +1289,11 @@ function handleClick(e){
   else if(action==='open-progress') openProgress();
   else if(action==='open-body-weight') openBodyWeight();
   else if(action==='save-body-weight') saveBodyWeight();
+  else if(action==='open-backup') openBackupPage();
+  else if(action==='save-backup-now') saveBackupNow();
+  else if(action==='save-backup-and-dismiss') saveBackupAndDismissBanner();
+  else if(action==='dismiss-backup-banner') dismissBackupBanner();
+  else if(action==='pick-restore-file') pickRestoreFile();
   else if(action==='back-to-calendar') backToCalendar();
   else if(action==='nav-month') navMonth(Number(el.dataset.dir));
 }
@@ -1145,6 +1304,7 @@ document.getElementById('modal').addEventListener('click', (e)=>{
 });
 document.addEventListener('change', (e)=>{
   if(e.target.id==='progress-select'){ state.progressExercise = e.target.value; render(); }
+  if(e.target.id==='restore-file-input' && e.target.files && e.target.files[0]){ handleRestoreFile(e.target.files[0]); }
 });
 document.addEventListener('keydown', (e)=>{
   if(e.key==='Enter' && e.target.id==='custom-exercise-input'){ e.preventDefault(); addCustomExercise(); }
