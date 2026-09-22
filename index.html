@@ -335,6 +335,12 @@
   .history-row:last-child{border-bottom:none;}
   .history-row .h-date{color:var(--text-2);}
   .history-row .h-sets{color:var(--text); text-align:right; font-weight:600;}
+  .history-delete{
+    width:26px; height:26px; display:flex; align-items:center; justify-content:center;
+    color:var(--text-3); flex-shrink:0;
+  }
+  .history-delete svg{width:14px; height:14px;}
+  .history-delete:active{color:var(--danger);}
 
   .bw-log-row{display:flex; gap:8px; align-items:center;}
   .bw-log-row input[type="date"]{
@@ -581,6 +587,7 @@ function render(){
   else if(state.modal.type === 'newRoutine') modalEl.innerHTML = renderNewRoutineModal(state.modal.date);
   else if(state.modal.type === 'daySummary') modalEl.innerHTML = renderDaySummaryModal(state.modal.date);
   else if(state.modal.type === 'confirmDelete') modalEl.innerHTML = renderConfirmDeleteModal(state.modal.date);
+  else if(state.modal.type === 'confirmDeleteWeight') modalEl.innerHTML = renderConfirmDeleteWeightModal(state.modal.date);
 }
 
 /* ============================= CALENDAR PAGE ============================= */
@@ -868,6 +875,21 @@ function renderConfirmDeleteModal(dateStr){
     </div>
   `;
 }
+function renderConfirmDeleteWeightModal(dateStr){
+  return `
+    <div class="overlay" data-action="dismiss-overlay">
+      <div class="sheet">
+        <div class="sheet-handle"></div>
+        <div class="sheet-title">Delete this entry?</div>
+        <div class="confirm-text">This removes your body weight entry for ${humanDate(dateStr)}. This can't be undone.</div>
+        <div class="modal-actions">
+          <button class="edit-action" data-action="close-modal">Keep it</button>
+          <button class="delete-action" data-action="confirm-delete-weight" data-date="${dateStr}">Delete</button>
+        </div>
+      </div>
+    </div>
+  `;
+}
 
 /* ============================= SHARED TREND CHART ============================= */
 function renderTrendSVG(values, emptyNoun){
@@ -963,7 +985,10 @@ function renderBodyWeightPage(){
   const historyRows = [...entries].reverse().map(e=>`
     <div class="history-row">
       <span class="h-date">${shortDate(e.date)}</span>
-      <span class="h-sets">${e.value}</span>
+      <div style="display:flex; align-items:center; gap:12px;">
+        <span class="h-sets">${e.value}</span>
+        <button class="history-delete" data-action="ask-delete-weight" data-date="${e.date}">${svgIcon('trash')}</button>
+      </div>
     </div>
   `).join('');
   return `
@@ -1177,6 +1202,12 @@ async function deleteDay(dateStr){
   state.modal = null;
   render();
 }
+async function deleteWeightEntry(dateStr){
+  delete bodyWeightLog[dateStr];
+  await saveBodyWeightLog();
+  state.modal = null;
+  render();
+}
 function openProgress(){
   state.page = 'progress';
   render();
@@ -1295,6 +1326,8 @@ function handleClick(e){
   else if(action==='edit-day') editDay(el.dataset.date);
   else if(action==='ask-delete'){ state.modal = {type:'confirmDelete', date:el.dataset.date}; render(); }
   else if(action==='confirm-delete') deleteDay(el.dataset.date);
+  else if(action==='ask-delete-weight'){ state.modal = {type:'confirmDeleteWeight', date:el.dataset.date}; render(); }
+  else if(action==='confirm-delete-weight') deleteWeightEntry(el.dataset.date);
   else if(action==='open-progress') openProgress();
   else if(action==='open-body-weight') openBodyWeight();
   else if(action==='save-body-weight') saveBodyWeight();
