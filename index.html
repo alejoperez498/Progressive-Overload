@@ -375,6 +375,11 @@
   }
   .secondary-btn:active{transform:scale(0.98);}
   .backup-note{font-size:13px; color:var(--text-2); line-height:1.5; margin-bottom:14px;}
+  .quick-log-confirm{
+    margin:14px 20px 0; padding:12px 16px;
+    background:rgba(95,167,119,0.12); border:1px solid rgba(95,167,119,0.35);
+    border-radius:var(--radius-md); color:#5FA777; font-size:13.5px; font-weight:600; text-align:center;
+  }
 
   ::-webkit-scrollbar{display:none;}
 </style>
@@ -556,7 +561,8 @@ const state = {
   editing: false,
   progressExercise: null,
   newRoutineColor: null,
-  backupBannerDismissed: false
+  backupBannerDismissed: false,
+  quickLogConfirmation: null
 };
 
 /* ============================= RENDER DISPATCH ============================= */
@@ -604,6 +610,8 @@ function renderCalendarPage(){
   const hasData = Object.keys(workoutLog).length>0 || Object.keys(bodyWeightLog).length>0;
   const overdue = hasData && daysSinceLastBackup() >= 7;
   const showBanner = overdue && !state.backupBannerDismissed;
+  const quickConfirm = state.quickLogConfirmation;
+  state.quickLogConfirmation = null;
 
   return `
     <div class="topbar">
@@ -614,6 +622,7 @@ function renderCalendarPage(){
         <button class="icon-btn" data-action="open-progress">${svgIcon('chart')}</button>
       </div>
     </div>
+    ${quickConfirm ? `<div class="quick-log-confirm">✓ ${escapeHtml(quickConfirm)}</div>` : ''}
     ${showBanner ? `
       <div class="backup-banner">
         <div>
@@ -1311,10 +1320,63 @@ document.addEventListener('keydown', (e)=>{
   if(e.key==='Enter' && e.target.id==='new-routine-name'){ e.preventDefault(); }
 });
 
+/* ============================= QUICK LOG FROM URL (Siri Shortcuts) ============================= */
+// Supports two deep-link forms, meant to be opened by an iOS Shortcut:
+//   ?logweight=180
+//   ?logset=1&routine=legs&exercise=Barbell%20Back%20Squat&weight=225&reps=5
+// Reads params, applies them directly to storage, then strips the query
+// string so a refresh or re-share never re-triggers or exposes the value.
+async function checkQuickLogFromURL(){
+  const params = new URLSearchParams(window.location.search);
+  let matched = false;
+  let confirmParts = [];
+
+  const w = params.get('logweight');
+  if(w !== null){
+    matched = true;
+    const v = Number(w);
+    if(!isNaN(v) && v > 0){
+      bodyWeightLog[todayKey()] = v;
+      await saveBodyWeightLog();
+      confirmParts.push(`Body weight logged: ${v}`);
+    }
+  }
+
+  if(params.get('logset') !== null){
+    matched = true;
+    const routineKey = params.get('routine');
+    const exerciseName = (params.get('exercise')||'').trim();
+    const weight = Number(params.get('weight'));
+    const reps = Number(params.get('reps'));
+    const validNumbers = (!isNaN(weight) || params.get('weight')===null) && (!isNaN(reps) || params.get('reps')===null);
+    if(routineKey && exerciseName && validNumbers && ((weight||0)>0 || (reps||0)>0)){
+      if(!exerciseLibrary[routineKey]) exerciseLibrary[routineKey] = [];
+      let libEx = exerciseLibrary[routineKey].find(e=>e.name.toLowerCase()===exerciseName.toLowerCase());
+      if(!libEx){ libEx = makeExFromName(exerciseName); exerciseLibrary[routineKey].push(libEx); }
+      libEx.lastUsed = todayKey();
+      await saveLibrary();
+
+      const dKey = todayKey();
+      if(!workoutLog[dKey]) workoutLog[dKey] = { routine: routineKey, exercises: [] };
+      let exEntry = workoutLog[dKey].exercises.find(e=>e.name.toLowerCase()===exerciseName.toLowerCase());
+      if(!exEntry){ exEntry = { name: libEx.name, sets: [] }; workoutLog[dKey].exercises.push(exEntry); }
+      exEntry.sets.push({ weight: weight||0, reps: reps||0 });
+      await saveWorkoutLog();
+      confirmParts.push(`${libEx.name}: ${weight||0}×${reps||0} logged`);
+    }
+  }
+
+  if(matched){
+    window.history.replaceState({}, '', window.location.pathname);
+    if(confirmParts.length) state.quickLogConfirmation = confirmParts.join(' · ');
+  }
+}
+
 /* ============================= BOOT ============================= */
 async function boot(){
   document.getElementById('page').innerHTML = `<div class="empty-state"><p>Loading your log…</p></div>`;
   await loadData();
+  await checkQuickLogFromURL();
   render();
 }
 boot();
