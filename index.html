@@ -169,10 +169,15 @@
   .add-custom-row{
     margin:14px 16px 0; padding:10px 10px 10px 14px;
     background:var(--surface); border:1px dashed var(--border); border-radius:var(--radius-md);
-    display:flex; align-items:center; gap:8px;
+    display:flex; flex-wrap:wrap; align-items:center; gap:8px;
   }
   .add-custom-row input{
-    flex:1; background:none; border:none; font-size:15px; color:var(--text); padding:8px 0;
+    flex:1 1 100%; background:none; border:none; font-size:15px; color:var(--text); padding:8px 0;
+  }
+  .add-custom-sub{display:flex; align-items:center; gap:8px; width:100%;}
+  .muscle-select{
+    flex:1; min-width:0; background:var(--surface-2); border:1px solid var(--border);
+    border-radius:var(--radius-sm); padding:9px 8px; font-size:13.5px; color:var(--text-2);
   }
   .add-custom-row input::placeholder{color:var(--text-3);}
   .add-custom-row button{
@@ -240,6 +245,34 @@
   }
   .myo-input::placeholder{color:var(--text-3);}
   .add-exercise-row{margin:14px 16px 0;}
+  .myo-boxes{flex-wrap:wrap; justify-content:flex-end; max-width:68%;}
+  .myo-add{
+    width:40px; height:40px; border-radius:10px; border:1px dashed var(--border);
+    display:flex; align-items:center; justify-content:center; color:var(--text-3);
+  }
+  .myo-add svg{width:14px; height:14px;}
+  .ex-head{display:flex; align-items:flex-start; justify-content:space-between; gap:10px;}
+  .eff-pill{
+    flex-shrink:0; font-size:11.5px; font-weight:700; color:var(--accent);
+    background:rgba(232,176,35,0.12); padding:4px 9px; border-radius:999px; white-space:nowrap;
+  }
+  .eff-card{
+    margin:14px 16px 0; padding:16px; background:var(--surface);
+    border:1px solid var(--border); border-radius:var(--radius-md);
+  }
+  .eff-title{font-size:15px; font-weight:700;}
+  .eff-sub{font-size:12.5px; color:var(--text-2); margin-top:3px; margin-bottom:6px; line-height:1.4;}
+  .eff-row{padding:10px 0 4px;}
+  .eff-top{display:flex; justify-content:space-between; align-items:baseline;}
+  .eff-muscle{font-size:14px; font-weight:600;}
+  .eff-num{font-size:15px; font-weight:700;}
+  .eff-low{color:#E8B023;} .eff-ok{color:#5FA777;} .eff-high{color:#E08A3C;}
+  .eff-track{position:relative; height:6px; background:var(--surface-2); border-radius:99px; margin-top:6px;}
+  .eff-fill{height:100%; border-radius:99px;}
+  .eff-fill-low{background:#E8B023;} .eff-fill-ok{background:#5FA777;} .eff-fill-high{background:#E08A3C;}
+  .eff-mark{position:absolute; top:-2px; width:2px; height:10px; background:var(--text-3); border-radius:1px;}
+  .eff-hint{font-size:11.5px; color:var(--text-3); margin-top:5px;}
+  .eff-line{color:var(--accent); font-size:12.5px; font-weight:600; margin-top:2px;}
 
   /* ---------- Modal / sheet ---------- */
   .overlay{
@@ -429,21 +462,46 @@ const DEFAULT_EXERCISES = {
   back:  ['Deadlift','Pull-Ups','Barbell Row','Lat Pulldown','Face Pull','Barbell Bicep Curl','Hammer Curl','Tricep Pushdown','Skull Crushers']
 };
 const PRESET_COLORS = ['#5FA777','#5B8DEF','#8E6FD1','#B0503F','#E8B023','#4FB6B0','#D66FA6','#8C9A4B','#C9564F','#6E8FAE'];
-// Known target muscle per exercise name, used for the muscle-breakdown analysis.
-// Anything not listed here (custom exercises) is bucketed as "Other".
+// Muscle groups used for tagging exercises and for the effective-reps analysis.
+const MUSCLES = ['Chest','Back','Shoulders','Biceps','Triceps','Quads','Hamstrings','Glutes','Calves','Abs','Adductors','Other'];
+// Known target muscle per exercise name (one primary muscle per exercise).
 const MUSCLE_MAP = {
-  'Barbell Back Squat':'Quads', 'Romanian Deadlift':'Hamstrings', 'Leg Press':'Quads',
-  'Walking Lunges':'Quads', 'Leg Extension':'Quads', 'Leg Curl':'Hamstrings',
-  'Standing Calf Raise':'Calves', 'Hanging Leg Raise':'Abs', 'Cable Crunch':'Abs',
-  'Barbell Bench Press':'Chest', 'Overhead Shoulder Press':'Shoulders', 'Weighted Dips':'Chest', 'Push-Ups':'Chest',
-  'Incline Dumbbell Press':'Chest', 'Cable Chest Fly':'Chest', 'Lateral Raise':'Shoulders', 'Front Raise':'Shoulders', 'Rear Delt Fly':'Shoulders',
-  'Deadlift':'Back', 'Pull-Ups':'Back', 'Barbell Row':'Back', 'Lat Pulldown':'Back', 'Face Pull':'Shoulders',
-  'Barbell Bicep Curl':'Biceps', 'Hammer Curl':'Biceps', 'Tricep Pushdown':'Triceps', 'Skull Crushers':'Triceps'
+  'Barbell Back Squat':'Quads', 'Romanian Deadlift':'Hamstrings', 'Leg Press':'Quads', 'Seated Leg Press':'Quads',
+  'Unilateral Seated Leg Press':'Quads', 'Walking Lunges':'Quads', 'Leg Extension':'Quads', 'Leg Curl':'Hamstrings',
+  'Unilateral Leg Curl':'Hamstrings', 'Standing Calf Raise':'Calves', 'Hanging Leg Raise':'Abs', 'Cable Crunch':'Abs',
+  'Hip Adduction':'Adductors',
+  'Barbell Bench Press':'Chest', 'Overhead Shoulder Press':'Shoulders', 'Weighted Dips':'Chest', 'Dips':'Chest', 'Push-Ups':'Chest',
+  'Incline Dumbbell Press':'Chest', 'Incline Barbell Press':'Chest', 'Cable Chest Fly':'Chest', 'Pec Deck':'Chest',
+  'Lateral Raise':'Shoulders', 'Dumbbell Lateral Raise':'Shoulders', 'Lying Lateral Raise':'Shoulders',
+  'Unilateral Cables Raises':'Shoulders', 'Front Raise':'Shoulders', 'Rear Delt Fly':'Shoulders',
+  'Barbell Military Press':'Shoulders', 'Face Pull':'Shoulders',
+  'Deadlift':'Back', 'Pull-Ups':'Back', 'Barbell Row':'Back', 'Lat Pulldown':'Back', 'Unilateral Cable Pull Down':'Back',
+  'Barbell Bicep Curl':'Biceps', 'Hammer Curl':'Biceps', 'Seated Dumbbell Curl':'Biceps', 'Machine Preacher Curl':'Biceps',
+  'Tricep Pushdown':'Triceps', 'Skull Crushers':'Triceps', 'Overhead Triceps Extension':'Triceps', 'Unilateral Cable Kick-Back':'Triceps'
 };
+// Keyword guess for exercises not in the map (checked in order, first hit wins).
+const MUSCLE_GUESS_RULES = [
+  [/adduct/, 'Adductors'],
+  [/leg curl|hamstring|romanian|\brdl\b|good morning/, 'Hamstrings'],
+  [/leg extension|squat|leg press|lunge|hack|quad|step.?up/, 'Quads'],
+  [/calf|calves/, 'Calves'],
+  [/crunch|sit.?up|leg raise|plank|ab wheel|woodchop|\babs?\b/, 'Abs'],
+  [/glute|hip thrust|abduct/, 'Glutes'],
+  [/tricep|pushdown|push down|skull|kick.?back|close.?grip/, 'Triceps'],
+  [/bicep|curl|preacher/, 'Biceps'],
+  [/lateral raise|front raise|rear delt|reverse fly|face pull|shoulder|overhead press|military|arnold|upright row|cables? raise|delt/, 'Shoulders'],
+  [/bench|chest|fly|flies|pec|push.?up|dip|incline|decline/, 'Chest'],
+  [/row|pull.?up|chin.?up|pulldown|pull.?down|deadlift|shrug|pullover|\blat\b/, 'Back']
+];
+function guessMuscle(name){
+  const n = normName(name);
+  for(const [re, muscle] of MUSCLE_GUESS_RULES){ if(re.test(n)) return muscle; }
+  return 'Other';
+}
 function muscleForExercise(name){
   const target = normName(name);
   const foundKey = Object.keys(MUSCLE_MAP).find(k=>normName(k)===target);
-  return foundKey ? MUSCLE_MAP[foundKey] : 'Other';
+  return foundKey ? MUSCLE_MAP[foundKey] : guessMuscle(name);
 }
 
 /* ============================= UTIL ============================= */
@@ -520,7 +578,7 @@ let bodyWeightLog = {};
 let backupMeta = {};
 let dataReady = false;
 
-function makeExFromName(name){ return { id: slugify(name)+'-'+Math.random().toString(36).slice(2,7), name, lastUsed:null, muscle: muscleForExercise(name) }; }
+function makeExFromName(name, muscle){ return { id: slugify(name)+'-'+Math.random().toString(36).slice(2,7), name, lastUsed:null, muscle: (muscle && MUSCLES.includes(muscle)) ? muscle : muscleForExercise(name) }; }
 function getRoutine(key){
   return routines.find(r=>r.key===key) || { key, label:'Deleted routine', color:'#6B6E73', builtin:false };
 }
@@ -528,9 +586,20 @@ function muscleForLoggedExercise(name){
   const target = normName(name);
   for(const key of Object.keys(exerciseLibrary)){
     const found = (exerciseLibrary[key]||[]).find(e=>normName(e.name)===target);
-    if(found) return found.muscle || 'Other';
+    if(found) return found.muscle || muscleForExercise(name);
   }
   return muscleForExercise(name);
+}
+
+// Adds muscle tags to any library exercise saved before that field existed. Returns true if anything changed.
+function backfillMuscleTags(){
+  let changed = false;
+  Object.keys(exerciseLibrary).forEach(key=>{
+    (exerciseLibrary[key]||[]).forEach(ex=>{
+      if(!ex.muscle){ ex.muscle = muscleForExercise(ex.name); changed = true; }
+    });
+  });
+  return changed;
 }
 
 async function loadData(){
@@ -554,16 +623,11 @@ async function loadData(){
   let libraryChanged = false;
   routines.forEach(r=>{
     if(!exerciseLibrary[r.key]){
-      exerciseLibrary[r.key] = (DEFAULT_EXERCISES[r.key]||[]).map(makeExFromName);
+      exerciseLibrary[r.key] = (DEFAULT_EXERCISES[r.key]||[]).map(n=>makeExFromName(n));
       libraryChanged = true;
     }
   });
-  // Backfill muscle tags for any exercise saved before this field existed.
-  Object.keys(exerciseLibrary).forEach(key=>{
-    (exerciseLibrary[key]||[]).forEach(ex=>{
-      if(!ex.muscle){ ex.muscle = muscleForExercise(ex.name); libraryChanged = true; }
-    });
-  });
+  if(backfillMuscleTags()) libraryChanged = true;
 
   try{
     const res = await window.storage.get('body-weight-log');
@@ -839,6 +903,18 @@ function exerciseRowsHtml(routineKey, excludeNames){
     });
   return list;
 }
+function customExerciseRowHtml(inputId, selectId, action, extraStyle){
+  return `<div class="add-custom-row"${extraStyle ? ` style="${extraStyle}"` : ''}>
+    <input id="${inputId}" type="text" placeholder="Add a custom exercise" maxlength="60">
+    <div class="add-custom-sub">
+      <select id="${selectId}" class="muscle-select">
+        <option value="">Muscle: auto-detect</option>
+        ${MUSCLES.map(m=>`<option value="${m}">${m}</option>`).join('')}
+      </select>
+      <button data-action="${action}">Add</button>
+    </div>
+  </div>`;
+}
 function renderExercisePickerPage(){
   const routineKey = state.selectedRoutine;
   const routine = getRoutine(routineKey);
@@ -867,10 +943,7 @@ function renderExercisePickerPage(){
     ${recent.length ? `<div class="list-heading">Recently used</div>${recent.map(rowHtml).join('')}` : ''}
     <div class="list-heading">${recent.length ? 'All exercises' : 'Exercises'}</div>
     ${rest.map(rowHtml).join('')}
-    <div class="add-custom-row">
-      <input id="custom-exercise-input" type="text" placeholder="Add a custom exercise" maxlength="60">
-      <button data-action="add-custom-exercise">Add</button>
-    </div>
+    ${customExerciseRowHtml('custom-exercise-input','custom-exercise-muscle','add-custom-exercise','')}
     <div class="footer-bar">
       <button class="primary-btn${canContinue?'':' disabled'}" data-action="continue-to-log">
         Continue${state.selectedExercises.length ? ` (${state.selectedExercises.length})` : ''}
@@ -895,10 +968,7 @@ function renderAddExerciseModal(){
         <div class="sheet-handle"></div>
         <div class="sheet-title">Add an exercise</div>
         ${rowsHtml || '<div class="confirm-text">Every exercise in this routine is already in your workout.</div>'}
-        <div class="add-custom-row" style="margin-top:14px;">
-          <input id="inline-custom-exercise-input" type="text" placeholder="Add a custom exercise" maxlength="60">
-          <button data-action="add-custom-exercise-inline">Add</button>
-        </div>
+        ${customExerciseRowHtml('inline-custom-exercise-input','inline-custom-exercise-muscle','add-custom-exercise-inline','margin-left:0;margin-right:0;margin-top:14px;')}
         <button class="cancel-btn" data-action="close-modal">Cancel</button>
       </div>
     </div>
@@ -918,11 +988,83 @@ function getLastPerformance(exName, excludeDate){
   }
   return null;
 }
+/* ============================= EFFECTIVE REPS ============================= */
+// Counting rules: a working set is worth at most 5 effective reps (fewer if you did fewer),
+// no matter how many total reps you did. Every myo rep counts, since all fibers are already recruited.
+// Goal: 20-30 effective reps per muscle per workout.
+const EFF_REPS_PER_SET_CAP = 5;
+const EFF_TARGET_MIN = 20, EFF_TARGET_MAX = 30;
+function effectiveRepsForExercise(sets, myoSets){
+  let total = 0;
+  (sets||[]).forEach(s=>{ total += Math.min(Number(s.reps)||0, EFF_REPS_PER_SET_CAP); });
+  (myoSets||[]).forEach(m=>{ total += Number(m)||0; });
+  return total;
+}
+function effectiveByMuscle(exercises){
+  const map = {};
+  exercises.forEach(ex=>{
+    const m = muscleForLoggedExercise(ex.name);
+    map[m] = (map[m]||0) + effectiveRepsForExercise(ex.sets, ex.myoSets);
+  });
+  return Object.keys(map).map(m=>({muscle:m, eff:map[m]})).filter(r=>r.eff>0).sort((a,b)=>b.eff-a.eff);
+}
+function effStatus(n){ return n < EFF_TARGET_MIN ? 'low' : (n <= EFF_TARGET_MAX ? 'ok' : 'high'); }
+function effPillText(name, n){ return `${n} eff. reps · ${muscleForLoggedExercise(name)}`; }
+function effSummaryInner(rows){
+  if(!rows.length) return `<div class="eff-sub" style="margin:8px 0 0;">Enter reps to see effective reps per muscle.</div>`;
+  const markLeft = (EFF_TARGET_MIN / EFF_TARGET_MAX * 100).toFixed(1);
+  return rows.map(r=>{
+    const st = effStatus(r.eff);
+    const pct = Math.min(100, Math.round(r.eff / EFF_TARGET_MAX * 100));
+    const hint = st==='low' ? `${EFF_TARGET_MIN - r.eff} more to reach ${EFF_TARGET_MIN}` : (st==='ok' ? 'in the 20–30 range' : `${r.eff - EFF_TARGET_MAX} over 30`);
+    return `<div class="eff-row">
+      <div class="eff-top"><span class="eff-muscle">${escapeHtml(r.muscle)}</span><span class="eff-num eff-${st}">${r.eff}</span></div>
+      <div class="eff-track"><div class="eff-fill eff-fill-${st}" style="width:${pct}%"></div><span class="eff-mark" style="left:${markLeft}%"></span></div>
+      <div class="eff-hint">${hint}</div>
+    </div>`;
+  }).join('');
+}
+function exercisesFromState(){
+  return state.selectedExercises.map(name=>({
+    name,
+    sets:(state.setsData[name]||[]).map(s=>({weight:Number(s.weight)||0, reps:Number(s.reps)||0})),
+    myoSets:(state.myoData[name]||[]).map(v=>Number(v)||0).filter(v=>v>0)
+  }));
+}
+// Reads the live inputs on the Log Sets page (no re-render, so typing is never interrupted).
+function collectLiveExercises(){
+  const cards = document.querySelectorAll('.exercise-card');
+  return state.selectedExercises.map((name,i)=>{
+    const card = cards[i];
+    if(!card) return {name, sets:[], myoSets:[]};
+    const sets = Array.from(card.querySelectorAll('.set-row')).map(row=>({
+      weight: Number(row.querySelector('.weight-input').value)||0,
+      reps: Number(row.querySelector('.reps-input').value)||0
+    }));
+    const myoSets = Array.from(card.querySelectorAll('.myo-input')).map(inp=>Number(inp.value)||0).filter(v=>v>0);
+    return {name, sets, myoSets};
+  });
+}
+function updateLiveEffective(){
+  const cards = document.querySelectorAll('.exercise-card');
+  const exs = collectLiveExercises();
+  exs.forEach((ex,i)=>{
+    const pill = cards[i] && cards[i].querySelector('.eff-pill');
+    if(pill) pill.textContent = effPillText(ex.name, effectiveRepsForExercise(ex.sets, ex.myoSets));
+  });
+  const box = document.getElementById('eff-summary');
+  if(box) box.innerHTML = effSummaryInner(effectiveByMuscle(exs));
+}
+
 function renderLogSetsPage(){
   const routine = getRoutine(state.selectedRoutine);
+  const liveExs = exercisesFromState();
   const cards = state.selectedExercises.map(name=>{
     const rows = state.setsData[name] || [{weight:'',reps:''}];
-    const myo = state.myoData[name] || ['',''];
+    const myo = [...(state.myoData[name] || ['',''])];
+    while(myo.length < 2) myo.push('');
+    const liveEx = liveExs.find(e=>e.name===name);
+    const effN = liveEx ? effectiveRepsForExercise(liveEx.sets, liveEx.myoSets) : 0;
     const last = getLastPerformance(name, state.editing ? state.selectedDate : null);
     const lastLine = last ? `Last time (${shortDate(last.date)}): ${last.sets.map(s=>`${s.weight||0}×${s.reps||0}`).join(', ')}` : `No previous record yet`;
     const setRows = rows.map((row,idx)=>`
@@ -935,7 +1077,10 @@ function renderLogSetsPage(){
     `).join('');
     return `
       <div class="exercise-card">
-        <div class="ex-title">${escapeHtml(name)}</div>
+        <div class="ex-head">
+          <div class="ex-title">${escapeHtml(name)}</div>
+          <span class="eff-pill">${effPillText(name, effN)}</span>
+        </div>
         <div class="last-time">${lastLine}</div>
         <div class="set-header"><span></span><span>Weight</span><span>Reps</span><span></span></div>
         ${setRows}
@@ -943,8 +1088,8 @@ function renderLogSetsPage(){
         <div class="myo-block">
           <span class="myo-label">Myo-reps (optional)</span>
           <div class="myo-boxes">
-            <input class="myo-input" type="number" inputmode="numeric" placeholder="M1" value="${myo[0]??''}">
-            <input class="myo-input" type="number" inputmode="numeric" placeholder="M2" value="${myo[1]??''}">
+            ${myo.map((v,i)=>`<input class="myo-input" type="number" inputmode="numeric" placeholder="M${i+1}" value="${v??''}">`).join('')}
+            <button class="myo-add" data-action="add-myo" data-ex="${escapeHtml(name)}">${svgIcon('plus')}</button>
           </div>
         </div>
       </div>
@@ -960,6 +1105,11 @@ function renderLogSetsPage(){
       </div>
     </div>
     ${cards}
+    <div class="eff-card">
+      <div class="eff-title">Effective reps by muscle</div>
+      <div class="eff-sub">Goal 20–30 per muscle · up to 5 per set + every myo rep</div>
+      <div id="eff-summary">${effSummaryInner(effectiveByMuscle(liveExs))}</div>
+    </div>
     <div class="add-exercise-row">
       <button class="secondary-btn" data-action="open-add-exercise-inline">+ Add exercise</button>
     </div>
@@ -977,8 +1127,15 @@ function renderDaySummaryModal(dateStr){
     <div class="summary-ex">
       <div class="ex-name">${escapeHtml(ex.name)}</div>
       <div class="sets-line">${ex.sets.map(s=>`${s.weight||0} × ${s.reps||0}`).join('   ·   ')}${(ex.myoSets && ex.myoSets.length) ? `   ·   Myo: ${ex.myoSets.join(', ')}` : ''}</div>
+      <div class="sets-line eff-line">${effPillText(ex.name, effectiveRepsForExercise(ex.sets, ex.myoSets))}</div>
     </div>
   `).join('');
+  const effBlock = `
+    <div class="eff-card" style="margin:14px 0 0;">
+      <div class="eff-title">Effective reps by muscle</div>
+      <div class="eff-sub">Goal 20–30 per muscle</div>
+      ${effSummaryInner(effectiveByMuscle(entry.exercises))}
+    </div>`;
   return `
     <div class="overlay" data-action="dismiss-overlay">
       <div class="sheet">
@@ -988,6 +1145,7 @@ function renderDaySummaryModal(dateStr){
         </button>
         <div class="sheet-date" style="text-align:left; margin-top:8px;">${humanDate(dateStr)}</div>
         <div style="margin-top:6px;">${rows}</div>
+        ${effBlock}
         <div class="modal-actions">
           <button class="edit-action" data-action="edit-day" data-date="${dateStr}">Edit</button>
           <button class="delete-action" data-action="ask-delete" data-date="${dateStr}">Delete</button>
@@ -1340,13 +1498,15 @@ function toggleExercise(name){
 }
 async function addCustomExercise(){
   const input = document.getElementById('custom-exercise-input');
+  const muscleSel = document.getElementById('custom-exercise-muscle');
+  const muscle = muscleSel ? muscleSel.value : '';
   const name = (input.value||'').trim();
   if(!name) return;
   const routineKey = state.selectedRoutine;
   if(!exerciseLibrary[routineKey]) exerciseLibrary[routineKey] = [];
   const exists = exerciseLibrary[routineKey].some(e=>normName(e.name)===normName(name));
   if(!exists){
-    exerciseLibrary[routineKey].push(makeExFromName(name));
+    exerciseLibrary[routineKey].push(makeExFromName(name, muscle));
     await saveLibrary();
   }
   if(!state.selectedExercises.includes(name)) state.selectedExercises.push(name);
@@ -1368,13 +1528,15 @@ function addExerciseInline(name){
 }
 async function addCustomExerciseInline(){
   const input = document.getElementById('inline-custom-exercise-input');
+  const muscleSel = document.getElementById('inline-custom-exercise-muscle');
+  const muscle = muscleSel ? muscleSel.value : '';
   const name = (input.value||'').trim();
   if(!name) return;
   const routineKey = state.selectedRoutine;
   if(!exerciseLibrary[routineKey]) exerciseLibrary[routineKey] = [];
   const exists = exerciseLibrary[routineKey].some(e=>normName(e.name)===normName(name));
   if(!exists){
-    exerciseLibrary[routineKey].push(makeExFromName(name));
+    exerciseLibrary[routineKey].push(makeExFromName(name, muscle));
     await saveLibrary();
   }
   addExerciseInline(name);
@@ -1392,6 +1554,14 @@ function syncSetsFromDOM(){
     const myoInputs = card.querySelectorAll('.myo-input');
     state.myoData[name] = Array.from(myoInputs).map(inp=>inp.value);
   });
+}
+function addMyo(exName){
+  syncSetsFromDOM();
+  const arr = state.myoData[exName] || ['',''];
+  while(arr.length < 2) arr.push('');
+  arr.push('');
+  state.myoData[exName] = arr;
+  render();
 }
 function continueToLog(){
   state.selectedExercises.forEach(name=>{
@@ -1516,7 +1686,7 @@ function openBackupPage(){
   render();
 }
 function buildBackupPayload(){
-  return { app:'overload-backup', version:1, exportedAt:new Date().toISOString(), routines, exerciseLibrary, workoutLog, bodyWeightLog };
+  return { app:'overload-backup', version:2, exportedAt:new Date().toISOString(), routines, exerciseLibrary, workoutLog, bodyWeightLog };
 }
 function triggerBackupDownload(){
   const payload = buildBackupPayload();
@@ -1566,6 +1736,7 @@ async function handleRestoreFile(file){
   exerciseLibrary = data.exerciseLibrary || {};
   routines = (data.routines && data.routines.length) ? data.routines : DEFAULT_ROUTINES.map(r=>({...r}));
   bodyWeightLog = data.bodyWeightLog || {};
+  backfillMuscleTags();
   await saveWorkoutLog();
   await saveLibrary();
   await saveRoutines();
@@ -1645,7 +1816,7 @@ function handleClick(e){
   else if(action==='create-routine') createRoutine(el.dataset.date);
   else if(action==='delete-routine') deleteRoutine(el.dataset.key);
   else if(action==='close-modal'){ state.modal=null; render(); }
-  else if(action==='dismiss-overlay'){ state.modal=null; render(); }
+  else if(action==='dismiss-overlay'){ if(e.target===el){ state.modal=null; render(); } }
   else if(action==='toggle-exercise') toggleExercise(el.dataset.name);
   else if(action==='add-custom-exercise') addCustomExercise();
   else if(action==='open-add-exercise-inline') openAddExerciseModal();
@@ -1653,6 +1824,7 @@ function handleClick(e){
   else if(action==='add-custom-exercise-inline') addCustomExerciseInline();
   else if(action==='continue-to-log') { if(state.selectedExercises.length) continueToLog(); }
   else if(action==='add-set') addSet(el.dataset.ex);
+  else if(action==='add-myo') addMyo(el.dataset.ex);
   else if(action==='remove-set') removeSet(el.dataset.ex, Number(el.dataset.idx));
   else if(action==='save-workout') saveWorkout();
   else if(action==='back-from-picker') backFromPicker();
@@ -1676,13 +1848,19 @@ function handleClick(e){
 }
 document.getElementById('page').addEventListener('click', handleClick);
 document.getElementById('modal').addEventListener('click', handleClick);
-document.getElementById('modal').addEventListener('click', (e)=>{
-  if(e.target.classList.contains('overlay')){ state.modal=null; render(); }
-});
 document.addEventListener('change', (e)=>{
   if(e.target.id==='progress-select'){ state.progressExercise = e.target.value; render(); }
   if(e.target.id==='routine-select'){ state.analysisRoutine = e.target.value; render(); }
   if(e.target.id==='restore-file-input' && e.target.files && e.target.files[0]){ handleRestoreFile(e.target.files[0]); }
+});
+document.addEventListener('focusin', (e)=>{
+  const t = e.target;
+  if(t && t.tagName==='INPUT' && t.closest && t.closest('.sheet')){
+    setTimeout(()=>{ try{ t.scrollIntoView({block:'center', behavior:'smooth'}); }catch(_){} }, 350);
+  }
+});
+document.addEventListener('input', (e)=>{
+  if(state.page==='logSets' && e.target.closest && e.target.closest('.exercise-card')) updateLiveEffective();
 });
 document.addEventListener('keydown', (e)=>{
   if(e.key==='Enter' && e.target.id==='custom-exercise-input'){ e.preventDefault(); addCustomExercise(); }
